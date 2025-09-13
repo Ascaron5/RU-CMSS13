@@ -1,52 +1,117 @@
-/obj/vehicle/walker/verb/enter_walker()
-	set category = "Object"
-	set name = "Enter Into Walker"
-	set src in oview(1)
-
-	if(usr.skills.get_skill_level(SKILL_POWERLOADER) >= SKILL_POWERLOADER_TRAINED)
-		move_in(usr)
-	else
-		to_chat(usr, "How to operate it?")
-
-/obj/vehicle/walker/verb/get_out()
+/obj/vehicle/walker/proc/exit_walker()
 	set name = "Eject"
 	set category = "Vehicle"
-	set hidden = FALSE
-	set src in range(0)
 
-	move_out()
+	var/mob/user = usr
+	if(!istype(user))
+		return FALSE
 
-/obj/vehicle/walker/verb/toggle_lights()
+	if(!istype(src, /obj/vehicle/walker))
+		src = user.interactee
+
+	if(zoom)
+		unzoom()
+
+	if(user.client)
+		user.client.mouse_pointer_icon = initial(user.client.mouse_pointer_icon)
+
+	user.unset_interaction()
+	user.loc = get_turf(src)
+	user.reset_view(null)
+	remove_verb(user.client, verb_list)
+	UnregisterSignal(user, COMSIG_MOB_RESISTED)
+
+	if(module_map[WALKER_HARDPOIN_LEFT])
+		module_map[WALKER_HARDPOIN_LEFT].unregister_signals(user)
+	if(module_map[WALKER_HARDPOIN_RIGHT])
+		module_map[WALKER_HARDPOIN_RIGHT].unregister_signals(user)
+
+	seats[VEHICLE_DRIVER] = null
+	update_icon()
+	return TRUE
+
+
+/obj/vehicle/walker/proc/toggle_lights()
 	set name = "Lights on/off"
 	set category = "Vehicle"
-	set src in range(0)
 
-	lights()
+	var/mob/user = usr
+	if(!istype(user))
+		return FALSE
 
-/obj/vehicle/walker/verb/eject_magazines()
-	set name = "Deploy Magazine"
+	if(!istype(src, /obj/vehicle/walker))
+		src = user.interactee
+
+	if(lights)
+		lights = FALSE
+		set_light(-lights_power)
+	else
+		lights = TRUE
+		set_light(lights_power)
+
+	playsound(src, 'sound/machines/click.ogg', 50)
+	return TRUE
+
+
+/obj/vehicle/walker/proc/eject_magazine()
+	set name = "Eject Magazine"
 	set category = "Vehicle"
-	set src in range(0)
 
-	deploy_magazine()
+	var/mob/user = usr
+	if(!istype(user))
+		return FALSE
 
-/obj/vehicle/walker/verb/get_stats()
+	if(!istype(src, /obj/vehicle/walker))
+		src = user.interactee
+
+	var/list/acceptible_modules = list()
+	if(module_map[WALKER_HARDPOIN_LEFT]?.ammo)
+		acceptible_modules += module_map[WALKER_HARDPOIN_LEFT]
+	if(module_map[WALKER_HARDPOIN_RIGHT]?.ammo)
+		acceptible_modules += module_map[WALKER_HARDPOIN_RIGHT]
+
+	if(!length(acceptible_modules))
+		to_chat(user, "Not found magazines to eject")
+		return FALSE
+
+	var/obj/item/walker_gun/hardpoint = tgui_input_list(usr, "Select a hardpoint to eject magazine.", "Eject Magazine", acceptible_modules)
+	if(!hardpoint || !hardpoint.ammo)
+		return FALSE
+
+	hardpoint.ammo.forceMove(get_turf(src))
+	hardpoint.ammo = null
+	to_chat(user, SPAN_WARNING("WARNING! [hardpoint.name] ammo magazine deployed."))
+	visible_message("[name]'s systems ejected used magazine.","")
+	return TRUE
+
+
+/obj/vehicle/walker/proc/get_stats()
 	set name = "Status Display"
 	set category = "Vehicle"
-	set src in range(0)
 
-	tgui_interact(usr)
+	var/mob/user = usr
+	if(!istype(user))
+		return FALSE
 
-/obj/vehicle/walker/verb/select_weapon()
-	set name = "Select Weapon"
-	set category = "Vehicle"
-	set src in range(0)
+	if(!istype(src, /obj/vehicle/walker))
+		src = user.interactee
 
-	cycle_weapons()
+	tgui_interact(user)
+	return TRUE
 
-/obj/vehicle/walker/verb/toggle_zoom()
+/obj/vehicle/walker/proc/toggle_zoom()
 	set name = "Zoom on/off"
 	set category = "Vehicle"
-	set src in range(0)
 
-	zoom_activate()
+	var/mob/user = usr
+	if(!istype(user))
+		return FALSE
+
+	if(!istype(src, /obj/vehicle/walker))
+		src = user.interactee
+
+	if(zoom)
+		unzoom()
+	else
+		do_zoom()
+	return TRUE

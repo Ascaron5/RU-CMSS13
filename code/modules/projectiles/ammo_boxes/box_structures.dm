@@ -101,7 +101,7 @@
 	if(item_box.handfuls)
 		var/obj/item/ammo_magazine/AM = locate(/obj/item/ammo_magazine) in item_box.contents
 		if(AM)
-			. +=  SPAN_INFO("It has roughly [floor(AM.current_rounds/5)] handfuls remaining.")
+			. +=  SPAN_INFO("It has roughly [floor(AM.current_rounds/AM.transfer_handful_amount)] handfuls remaining.")
 	else
 		. +=  SPAN_INFO("It has [length(item_box.contents)] magazines out of [item_box.num_of_magazines].")
 	if(burning)
@@ -148,8 +148,8 @@
 					if(F.type != flare_type)
 						to_chat(user, SPAN_WARNING("Some flares in [W] are not of the correct type."))
 						return
-			else if(istype(W, /obj/item/storage/box/MRE))
-				var/obj/item/storage/box/MRE/mre_pack = W
+			else if(istype(W, /obj/item/storage/box/mre))
+				var/obj/item/storage/box/mre/mre_pack = W
 				if(mre_pack.isopened)
 					to_chat(user, SPAN_WARNING("[W] was already opened and isn't suitable for storing in [src]."))
 					return

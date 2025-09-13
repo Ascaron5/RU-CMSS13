@@ -84,10 +84,10 @@ GLOBAL_DATUM_INIT(ahelp_tickets, /datum/admin_help_tickets, new)
 	if(!l2b)
 		return
 	var/list/dat = list("<html><head><meta http-equiv='Content-Type' content='text/html; charset=UTF-8'><link rel='stylesheet' type='text/css' href='[SSassets.transport.get_asset_url("common.css")]'><title>[title]</title></head>")
-	dat += "<A href='?_src_=admin_holder;[HrefToken()];ahelp_tickets=[state]'>Refresh</A><br><br>"
+	dat += "<A href='byond://?_src_=admin_holder;[HrefToken()];ahelp_tickets=[state]'>Refresh</A><br><br>"
 	for(var/I in l2b)
 		var/datum/admin_help/AH = I
-		dat += "[SPAN_ADMINNOTICE("[SPAN_ADMINHELP("Ticket #[AH.id]")]: <A href='?_src_=admin_holder;[HrefToken()];ahelp=[REF(AH)];ahelp_action=ticket'>[AH.initiator_key_name]: [AH.name]</A>")]<br>"
+		dat += "[SPAN_ADMINNOTICE("[SPAN_ADMINHELP("Ticket #[AH.id]")]: <A href='byond://?_src_=admin_holder;[HrefToken()];ahelp=[REF(AH)];ahelp_action=ticket'>[AH.initiator_key_name]: [AH.name]</A>")]<br>"
 
 	usr << browse(dat.Join(), "window=ahelp_list[state];size=600x480")
 
@@ -249,6 +249,7 @@ GLOBAL_DATUM_INIT(ahelp_tickets, /datum/admin_help_tickets, new)
 		send_message_to_external(msg, urgent)
 	GLOB.ahelp_tickets.active_tickets += src
 
+/*
 /datum/admin_help/proc/format_embed_discord(message)
 	var/datum/discord_embed/embed = new()
 	embed.title = "Ticket #[id]"
@@ -314,12 +315,69 @@ GLOBAL_DATUM_INIT(ahelp_tickets, /datum/admin_help_tickets, new)
 			embed.footer = "This player sent an ahelp when no admins are available [urgent? "and also requested an admin": ""]"
 			send2adminchat_webhook(embed, urgent = FALSE)
 			webhook_sent = WEBHOOK_NON_URGENT
+*/
+//RUCM START
+/datum/admin_help/proc/format_embed_discord(message)
+	. = list()
+	.["title"] = "Ticket #[id]"
+	.["description"] = "<byond://[world.internet_address]:[world.port]>"
+	.["author"] = key_name(initiator_ckey)
+	var/round_state
+	switch(SSticker.current_state)
+		if(GAME_STATE_STARTUP, GAME_STATE_PREGAME, GAME_STATE_SETTING_UP)
+			round_state = "Round has not started"
+		if(GAME_STATE_PLAYING)
+			round_state = "Round is ongoing."
+		if(GAME_STATE_FINISHED)
+			round_state = "Round has ended"
+	var/list/admin_counts = get_admin_counts(R_BAN)
+	var/stealth_admins = jointext(admin_counts["stealth"], ", ")
+	var/afk_admins = jointext(admin_counts["afk"], ", ")
+	var/other_admins = jointext(admin_counts["noflags"], ", ")
+	var/admin_text = ""
+	var/player_count = "**Total**: [length(GLOB.clients)]"
+	if(stealth_admins)
+		admin_text += "**Stealthed**: [stealth_admins]\n"
+	if(afk_admins)
+		admin_text += "**AFK**: [afk_admins]\n"
+	if(other_admins)
+		admin_text += "**Lacks +BAN**: [other_admins]\n"
+	.["fields"] = list(
+		"CKEY" = initiator_ckey,
+		"PLAYERS" = player_count,
+		"ROUND STATE" = round_state,
+		"ROUND ID" = GLOB.round_id,
+		"ROUND TIME" = duration2text(),
+		"MESSAGE" = message,
+		"ADMINS" = admin_text,
+	)
+	if(CONFIG_GET(string/adminhelp_ahelp_link))
+		var/ahelp_link = replacetext(CONFIG_GET(string/adminhelp_ahelp_link), "$RID", SSperf_logging.round?.id)
+		ahelp_link = replacetext(ahelp_link, "$TID", id)
+		.["url"] = ahelp_link
+
+/datum/admin_help/proc/send_message_to_external(message)
+	var/list/adm = get_admin_counts(R_BAN)
+	var/list/activemins = adm["present"]
+	var/admin_number_present = activemins.len
+
+	log_admin_private("Ticket #[id]: [key_name(initiator)]: [name] - heard by [admin_number_present] non-AFK admins who have +BAN.")
+	heard_by_no_admins = TRUE
+	var/list/embed = format_embed_discord(message)
+	embed["content"] = CONFIG_GET(string/ahelp_message)
+	if(admin_number_present <= 0)
+		to_chat(initiator, SPAN_NOTICE("No active admins are online, your adminhelp was sent to admins who are available through IRC or Discord."), confidential = TRUE)
+		embed["footer"] = "This player sent an ahelp when no admins are available and also requested an admin"
+	REDIS_PUBLISH("byond.admin", "type" = "admin", "state" = "ahelp", "embed" = embed)
+//RUCM END
 
 /proc/send2adminchat_webhook(message_or_embed, urgent)
 	var/webhook = CONFIG_GET(string/urgent_adminhelp_webhook_url)
 	if(!urgent)
 		webhook = CONFIG_GET(string/regular_adminhelp_webhook_url)
+	send2webhook(message_or_embed, webhook)
 
+/proc/send2webhook(message_or_embed, webhook)
 	if(!webhook)
 		return
 	var/list/webhook_info = list()
@@ -369,9 +427,9 @@ GLOBAL_DATUM_INIT(ahelp_tickets, /datum/admin_help_tickets, new)
 	. = "<br><b>Ticket Actions: </b>"
 	if(state == AHELP_ACTIVE)
 		if(initial_message)
-			. += " (<A HREF='?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[ref_src];ahelp_action=defer'>DEFER</A>)"
+			. += " (<A href='byond://?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[ref_src];ahelp_action=defer'>DEFER</A>)"
 		if (CONFIG_GET(flag/popup_admin_pm))
-			. += " (<A HREF='?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];adminpopup=[REF(initiator)]'>POPUP</A>)"
+			. += " (<A href='byond://?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];adminpopup=[REF(initiator)]'>POPUP</A>)"
 		. += ClosureLinks(ref_src)
 	. += "<br><b>Player Actions: </b>"
 	. += ADMIN_FULLMONTY_NONAME(initiator.mob)
@@ -381,23 +439,23 @@ GLOBAL_DATUM_INIT(ahelp_tickets, /datum/admin_help_tickets, new)
 /datum/admin_help/proc/ClosureLinks(ref_src)
 	if(!ref_src)
 		ref_src = "[REF(src)]"
-	. = " (<A HREF='?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[ref_src];ahelp_action=mark'>[marked_admin ? "UNMARK" : "MARK"]</A>)"
-	. += " (<A HREF='?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[ref_src];ahelp_action=reject'>REJT</A>)"
-	. += " (<A HREF='?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[ref_src];ahelp_action=autoreply'>AUTO</A>)"
-	. += " (<A HREF='?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[ref_src];ahelp_action=close'>CLOSE</A>)"
-	. += " (<A HREF='?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[ref_src];ahelp_action=resolve'>RSLVE</A>)"
+	. = " (<A href='byond://?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[ref_src];ahelp_action=mark'>[marked_admin ? "UNMARK" : "MARK"]</A>)"
+	. += " (<A href='byond://?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[ref_src];ahelp_action=reject'>REJT</A>)"
+	. += " (<A href='byond://?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[ref_src];ahelp_action=autoreply'>AUTO</A>)"
+	. += " (<A href='byond://?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[ref_src];ahelp_action=close'>CLOSE</A>)"
+	. += " (<A href='byond://?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[ref_src];ahelp_action=resolve'>RSLVE</A>)"
 
 //private
 /datum/admin_help/proc/LinkedReplyName(ref_src)
 	if(!ref_src)
 		ref_src = "[REF(src)]"
-	return "<A HREF='?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[ref_src];ahelp_action=reply'>[initiator_key_name]</A>"
+	return "<A href='byond://?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[ref_src];ahelp_action=reply'>[initiator_key_name]</A>"
 
 //private
 /datum/admin_help/proc/TicketHref(msg, ref_src, action = "ticket")
 	if(!ref_src)
 		ref_src = "[REF(src)]"
-	return "<A HREF='?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[ref_src];ahelp_action=[action]'>[msg]</A>"
+	return "<A href='byond://?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[ref_src];ahelp_action=[action]'>[msg]</A>"
 
 //message from the initiator without a target, all admins will see this
 //won't bug irc/discord
@@ -743,7 +801,7 @@ GLOBAL_DATUM_INIT(ahelp_tickets, /datum/admin_help_tickets, new)
 			dat += "CLOSED</b>"
 		else
 			dat += "UNKNOWN</b>"
-	dat += "\n[FOURSPACES]<A href='?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];player_ticket_panel=1'>Refresh</A>"
+	dat += "\n[FOURSPACES]<A href='byond://?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];player_ticket_panel=1'>Refresh</A>"
 	dat += "<br><br>Opened at: [gameTimestamp("hh:mm:ss", opened_at)] (Approx [DisplayTimeText(world.time - opened_at)] ago)"
 	if(closed_at)
 		dat += "<br>Closed at: [gameTimestamp("hh:mm:ss", closed_at)] (Approx [DisplayTimeText(world.time - closed_at)] ago)"
@@ -858,9 +916,15 @@ GLOBAL_DATUM_INIT(admin_help_ui_handler, /datum/admin_help_ui_handler, new)
 
 	if(user_client.current_ticket)
 		user_client.current_ticket.TimeoutVerb()
+/*
 		if(urgent)
 			var/sanitized_message = sanitize(copytext_char(message, 1, MAX_MESSAGE_LEN))
 			user_client.current_ticket.send_message_to_external(sanitized_message, urgent = TRUE)
+*/
+		//RUCM START
+		var/sanitized_message = sanitize(copytext_char(message, 1, MAX_MESSAGE_LEN))
+		user_client.current_ticket.send_message_to_external(sanitized_message)
+		//RUCM END
 		user_client.current_ticket.MessageNoRecipient(message, urgent)
 		return
 
@@ -881,7 +945,7 @@ GLOBAL_DATUM_INIT(admin_help_ui_handler, /datum/admin_help_ui_handler, new)
 	set category = "Admin"
 	set name = "Adminhelp"
 	GLOB.admin_help_ui_handler.tgui_interact(mob)
-	to_chat(src, SPAN_BOLDNOTICE("Adminhelp failing to open or work? <a href='?src=[REF(src)];tguiless_adminhelp=1'>Click here</a>"))
+	to_chat(src, SPAN_BOLDNOTICE("Adminhelp failing to open or work? <a href='byond://?src=[REF(src)];tguiless_adminhelp=1'>Click here</a>"))
 
 /client/verb/mentorhelp()
 	set category = "Admin"
@@ -1022,7 +1086,7 @@ GLOBAL_DATUM_INIT(admin_help_ui_handler, /datum/admin_help_ui_handler, new)
 				var/datum/datum_check = locate(word_with_brackets)
 				if(!istype(datum_check))
 					continue
-				msglist[i] = "<u><a href='?_src_=vars;[HrefToken(forceGlobal = TRUE)];Vars=[word_with_brackets]'>[word]</A></u>"
+				msglist[i] = "<u><a href='byond://?_src_=vars;[HrefToken(forceGlobal = TRUE)];Vars=[word_with_brackets]'>[word]</A></u>"
 				modified = TRUE
 
 			if("#") // check if we're linking a ticket
@@ -1043,7 +1107,7 @@ GLOBAL_DATUM_INIT(admin_help_ui_handler, /datum/admin_help_ui_handler, new)
 					if(AHELP_RESOLVED)
 						state_word = "Resolved"
 
-				msglist[i]= "<u><A href='?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[REF(ahelp_check)];ahelp_action=ticket'>[word] ([state_word] | [ahelp_check.initiator_key_name])</A></u>"
+				msglist[i]= "<u><A href='byond://?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];ahelp=[REF(ahelp_check)];ahelp_action=ticket'>[word] ([state_word] | [ahelp_check.initiator_key_name])</A></u>"
 				modified = TRUE
 
 	if(modified)

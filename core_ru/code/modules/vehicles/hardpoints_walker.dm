@@ -1,3 +1,10 @@
+#define WALKER_HARDPOIN_LEFT "Left"
+#define WALKER_HARDPOIN_RIGHT "Right"
+#define WALKER_HARDPOIN_ARMOR "Armor"
+#define WALKER_HARDPOIN_BACK "Back"
+
+// Этого человека снизу надо найти и посадить в подвал перекодивать фичу
+
 ////////////////
 // MEGALODON HARDPOINTS // START
 ////////////////
@@ -13,11 +20,10 @@
 	var/list/fire_sound = list('sound/weapons/gun_smartgun1.ogg', 'sound/weapons/gun_smartgun2.ogg', 'sound/weapons/gun_smartgun3.ogg')
 	var/fire_delay = 0
 	var/last_fire = 0
-	var/burst = 1
 
 	w_class = 12.0
 
-	var/muzzle_flash 	= "muzzle_flash"
+	var/muzzle_flash = "muzzle_flash"
 	var/muzzle_flash_lum = 3 //muzzle flash brightness
 	var/list/projectile_traits = list()
 	var/automatic = TRUE
@@ -29,21 +35,26 @@
 
 	var/autofire_slow_mult = 1
 
-/obj/item/walker_gun/Initialize()
+/obj/item/walker_gun/Initialize(mapload, ...)
 	. = ..()
 
-	ammo = new magazine_type()
+	if(istype(loc, /obj/vehicle/walker))
+		owner = loc
 
-	if (automatic)
-		AddComponent(/datum/component/automatedfire/autofire, fire_delay, fire_delay, burst, GUN_FIREMODE_AUTOMATIC, autofire_slow_mult, CALLBACK(src, PROC_REF(set_bursting)), CALLBACK(src, PROC_REF(reset_fire)), CALLBACK(src, PROC_REF(fire_wrapper)), CALLBACK(src, PROC_REF(display_ammo)), CALLBACK(src, PROC_REF(set_auto_firing))) //This should go after handle_starting_attachment() and setup_firemodes() to get the proper values set.
+	ammo = new magazine_type
+
+	if(automatic)
+		AddComponent(/datum/component/automatedfire/autofire, fire_delay, fire_delay, 1, GUN_FIREMODE_AUTOMATIC, autofire_slow_mult, CALLBACK(src, PROC_REF(set_bursting)), CALLBACK(src, PROC_REF(reset_fire)), CALLBACK(src, PROC_REF(fire_wrapper)), CALLBACK(src, PROC_REF(display_ammo)), CALLBACK(src, PROC_REF(set_auto_firing)))
 
 /obj/item/walker_gun/proc/register_signals(mob/user)
-	RegisterSignal(user, COMSIG_MOB_MOUSEDOWN, PROC_REF(start_fire))
-	RegisterSignal(user, COMSIG_MOB_MOUSEDRAG, PROC_REF(change_target))
-	RegisterSignal(user, COMSIG_MOB_MOUSEUP, PROC_REF(stop_fire))
+	if(automatic)
+		RegisterSignal(user, COMSIG_MOB_MOUSEDOWN, PROC_REF(start_fire))
+		RegisterSignal(user, COMSIG_MOB_MOUSEDRAG, PROC_REF(change_target))
+		RegisterSignal(user, COMSIG_MOB_MOUSEUP, PROC_REF(stop_fire))
 
 /obj/item/walker_gun/proc/unregister_signals(mob/user)
-	UnregisterSignal(user, list(COMSIG_MOB_MOUSEUP, COMSIG_MOB_MOUSEDOWN, COMSIG_MOB_MOUSEDRAG))
+	if(automatic)
+		UnregisterSignal(user, list(COMSIG_MOB_MOUSEUP, COMSIG_MOB_MOUSEDOWN, COMSIG_MOB_MOUSEDRAG))
 
 /obj/item/walker_gun/proc/change_target(datum/source, atom/src_object, atom/over_object, turf/src_location, turf/over_location, src_control, over_control, params)
 	SIGNAL_HANDLER
@@ -52,28 +63,38 @@
 /obj/item/walker_gun/proc/start_fire(datum/source, atom/object, turf/location, control, params, bypass_checks = FALSE)
 	SIGNAL_HANDLER
 
-	var/list/modifiers = params2list(params)
-	if(modifiers["shift"] || modifiers["middle"] || modifiers["right"])
+	if(!owner)
 		return
 
-	// Don't allow doing anything else if inside a container of some sort, like a locker.
-	if(!isturf(owner.loc))
+	var/list/modifiers = params2list(params)
+	if(!modifiers[LEFT_CLICK] && !modifiers[MIDDLE_CLICK])
+		return
+
+	if(owner.module_map[WALKER_HARDPOIN_LEFT] == src ? !modifiers[LEFT_CLICK] : !modifiers[MIDDLE_CLICK])
 		return
 
 	if(istype(object, /atom/movable/screen))
 		return
 
-	if (!owner.firing_arc(object))
+	if(!owner.firing_arc(object))
 		return
 
 	set_target(get_turf_on_clickcatcher(object, owner.seats[VEHICLE_DRIVER], params))
 
 	SEND_SIGNAL(src, COMSIG_GUN_FIRE)
 
-/obj/item/walker_gun/proc/stop_fire()
+/obj/item/walker_gun/proc/stop_fire(datum/source, atom/object, turf/location, control, params)
 	SIGNAL_HANDLER
 
-	reset_fire()
+	if(!owner)
+		return
+
+	var/list/modifiers = params2list(params)
+	if(!modifiers[LEFT_CLICK] && !modifiers[MIDDLE_CLICK])
+		return
+
+	if(owner.module_map[WALKER_HARDPOIN_LEFT] == src ? modifiers[BUTTON] == LEFT_CLICK : modifiers[BUTTON] == MIDDLE_CLICK)
+		reset_fire()
 
 /obj/item/walker_gun/proc/get_icon_image(hardpoint)
 	if(!owner)
@@ -125,6 +146,13 @@
 	SIGNAL_HANDLER
 	target = get_turf(target)
 
+/obj/item/walker_gun/proc/create_bullet(mob/user, location)
+	var/obj/projectile/P = new(location, create_cause_data(initial(name), user))
+	P.generate_bullet(new ammo.default_ammo)
+	for (var/trait in projectile_traits)
+		GIVE_BULLET_TRAIT(P, trait, FACTION_MARINE)
+	return P
+
 /obj/item/walker_gun/proc/active_effect(atom/target, mob/living/user)
 	if (!ammo)
 		to_chat(user, "<span class='warning'>WARNING! System report: ammunition is depleted!</span>")
@@ -141,7 +169,7 @@
 		to_chat(user, "<span class='warning'>WARNING! System report: weapon is not ready to fire again!</span>")
 		return FALSE
 	last_fire = world.time
-	var/obj/projectile/P
+/* всего хорошего всем тем кто трогал это, я больше меха трогать не буду, никогда не смотрел этот файл, и не стоило, пытался понять почему автофаеру так плохл... и добавить на RMB со вторички
 	for(var/i = 1 to burst)
 		if(!owner.firing_arc(target))
 			if(i == 1)
@@ -163,6 +191,16 @@
 			visible_message("[owner.name]'s systems deployed used magazine.","")
 			break
 		sleep(3)
+*/
+	if(!owner.firing_arc(target))
+		return FALSE
+
+	var/obj/projectile/P = create_bullet(user)
+	playsound(get_turf(owner), pick(fire_sound), 60)
+	target = simulate_scatter(target, P)
+	P.fire_at(target, owner, src, P.ammo.max_range, P.ammo.shell_speed)
+	ammo.current_rounds--
+
 	display_ammo(user)
 	visible_message("<span class='danger'>[owner.name] fires from [name]!</span>", "<span class='warning'>You hear [istype(P.ammo, /datum/ammo/bullet) ? "gunshot" : "blast"]!</span>")
 
@@ -220,8 +258,7 @@
 	icon_state = "mech_smartgun_parts"
 	equip_state = "redy_smartgun"
 	magazine_type = /obj/item/ammo_magazine/walker/smartgun
-	burst = 3
-	fire_delay = 3
+	fire_delay = 1
 
 	projectile_traits = list(/datum/element/bullet_trait_iff)
 
@@ -232,11 +269,22 @@
 	equip_state = "redy_minigun"
 	fire_sound = list('sound/weapons/gun_minigun.ogg')
 	magazine_type = /obj/item/ammo_magazine/walker/hmg
-	fire_delay = 7
-	burst = 3
-	scatter_value = 25
+	fire_delay = 2.7
+	scatter_value = 40
 
 	projectile_traits = list()
+
+/obj/item/walker_gun/shotgun8g
+	name = "M32 Mounted Shotgun"
+	desc = "8 Gauge shotgun firing wave of AP bullets ineffective at distance, mounted on military walkers for devastation pacify"
+	icon_state = "mech_shotgun8g_parts"
+	equip_state = "redy_shotgun8g"
+	fire_sound = list('sound/weapons/gun_type23.ogg')
+	magazine_type = /obj/item/ammo_magazine/walker/shotgun8g
+	fire_delay = 11
+	scatter_value = 0
+	automatic = FALSE
+
 
 /obj/item/walker_gun/flamer
 	name = "F40 \"Hellfire\" Flamethower"
@@ -361,6 +409,15 @@
 	default_ammo = /datum/ammo/bullet/walker/machinegun
 	gun_type = /obj/item/walker_gun/hmg
 
+/obj/item/ammo_magazine/walker/shotgun8g
+	name = "M32 Mounted Shotgun Magazine"
+	desc = "A armament M32 magazine"
+	icon_state = "mech_shotgun8g_ammo"
+	max_rounds = 60
+	default_ammo = /datum/ammo/bullet/walker/shotgun8g
+	gun_type = /obj/item/walker_gun/shotgun8g
+
+
 /obj/item/ammo_magazine/walker/flamer
 	name = "F40 UT-Napthal Canister"
 	desc = "Canister for mounted flamethower"
@@ -456,7 +513,42 @@
 	max_range = 12
 	damage = 45
 	penetration= ARMOR_PENETRATION_TIER_5
-	accuracy = -HIT_ACCURACY_TIER_3
+	accuracy = -HIT_ACCURACY_TIER_2
+
+/datum/ammo/bullet/walker/shotgun8g
+	name = "8 gauge buckshot shell"
+	icon_state = "buckshot"
+
+	accurate_range = 2 //запрет на дальнюю стрельбу, нанесет только ~30 урона из-за промахов разброса, в дистанции два тайла спереди спокойно сносит 160 квине/раве
+	max_range = 6 //Возможно, следует поднять макс дальность до 6; в тоже время оно вообще не должно стреляться в даль
+	damage = 60 //вообще, у дроби 8g 75 урона, но мех не должен прям гнобить при попадании даже небронированные цели, шотган для самообороны
+	damage_falloff = DAMAGE_FALLOFF_TIER_6 //5 фэлл офа,фиг, а не дальнее поражение с высоким уроном
+	penetration= ARMOR_PENETRATION_TIER_2 //нулевое бронепробитие в оригинале
+	bonus_projectiles_type = /datum/ammo/bullet/walker/shotgun8g/spread
+	bonus_projectiles_amount = EXTRA_PROJECTILES_TIER_3 //у меха проблема с мелкими целями, больших в упор спокойно дамажит, дрон же получит 1 дробинку и оглушится, подставляя, но не нанося серьезного ущерба
+
+/datum/ammo/bullet/walker/shotgun8g/spread
+	name = "additional 8 gauge buckshot"
+	scatter = SCATTER_AMOUNT_TIER_1
+	bonus_projectiles_amount = 0
+
+
+/datum/ammo/bullet/walker/shotgun8g/on_hit_mob(mob/M,obj/projectile/P)
+	knockback(M,P, 3)
+
+/datum/ammo/bullet/walker/shotgun8g/knockback_effects(mob/living/living_mob)
+	if(iscarbonsizexeno(living_mob))
+		var/mob/living/carbon/xenomorph/target = living_mob
+		to_chat(target, SPAN_XENODANGER("You are shaken and slowed by the sudden impact!"))
+		target.KnockDown(0.5) // If you ask me the KD should be left out, but players like their visual cues
+		target.Stun(0.5)
+		target.apply_effect(1, SUPERSLOW)
+		target.apply_effect(2, SLOW)
+	else
+		if(!isyautja(living_mob)) //Not predators.
+			living_mob.apply_effect(1, SUPERSLOW)
+			living_mob.apply_effect(2, SLOW)
+			to_chat(living_mob, SPAN_HIGHDANGER("The impact knocks you off-balance!"))
 
 ////////////////
 // MEGALODON HARDPOINTS // END
@@ -471,6 +563,17 @@
 	cost = 20
 	containertype = /obj/structure/closet/crate/ammo
 	containername = "M56 Double-Barrel ammo crate"
+	group = "Vehicle Ammo"
+
+/datum/supply_packs/ammo_M32_walker
+	name = "M32 Mounted Shotgun magazines crate"
+	contains = list(
+		/obj/item/ammo_magazine/walker/shotgun8g,
+		/obj/item/ammo_magazine/walker/shotgun8g,
+	)
+	cost = 30
+	containertype = /obj/structure/closet/crate/ammo
+	containername = "M32 Mounted Shotgun ammo crate"
 	group = "Vehicle Ammo"
 
 /datum/supply_packs/ammo_M30_walker

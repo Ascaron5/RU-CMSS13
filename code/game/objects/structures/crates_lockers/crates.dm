@@ -15,10 +15,17 @@
 	/// Types this crate can be made into
 	var/list/crate_customizing_types = list(
 		"Plain" = /obj/structure/closet/crate,
+		"Plain (Green)" = /obj/structure/closet/crate/green,
 		"Weapons" = /obj/structure/closet/crate/weapon,
 		"Supply" = /obj/structure/closet/crate/supply,
 		"Ammo" = /obj/structure/closet/crate/ammo,
+		"Ammo (Black)" = /obj/structure/closet/crate/ammo/alt,
+		"Ammo (Flame)" = /obj/structure/closet/crate/ammo/alt/flame,
 		"Construction" = /obj/structure/closet/crate/construction,
+		"Science" = /obj/structure/closet/crate/science,
+		"Hydroponics" = /obj/structure/closet/crate/hydroponics,
+		"Medical" = /obj/structure/closet/crate/medical,
+		"Internals" = /obj/structure/closet/crate/internals,
 		"Explosives" = /obj/structure/closet/crate/explosives,
 		"Alpha" = /obj/structure/closet/crate/alpha,
 		"Bravo" = /obj/structure/closet/crate/bravo,
@@ -101,10 +108,11 @@
 	return 1
 
 /obj/structure/closet/crate/attackby(obj/item/W as obj, mob/user as mob)
-	if(W.flags_item & ITEM_ABSTRACT) return
+	if(W.flags_item & ITEM_ABSTRACT)
+		return
 	if(opened)
 		user.drop_inv_item_to_loc(W, loc)
-	else if(istype(W, /obj/item/packageWrap) || istype(W, /obj/item/stack/fulton))
+	else if(istype(W, /obj/item/packageWrap) || istype(W, /obj/item/stack/fulton) || istype(W, /obj/item/tool/hand_labeler)) //If it does something to the crate, don't open it.
 		return
 	else if(istype(W, /obj/item/stack/cable_coil))
 		var/obj/item/stack/cable_coil/C = W
@@ -127,7 +135,8 @@
 			playsound(loc, 'sound/items/Wirecutter.ogg', 25, 1)
 			rigged = 0
 			return
-	else return attack_hand(user)
+	else
+		return attack_hand(user)
 
 /obj/structure/closet/crate/ex_act(severity)
 	switch(severity)
@@ -288,15 +297,6 @@
 	new /obj/item/storage/box/donkpockets(src)
 	new /obj/item/storage/box/donkpockets(src)
 
-/* CM doesn't use this.
-/obj/structure/closet/crate/bin
-	desc = "A large bin."
-	name = "Large bin"
-	icon_state = "largebin"
-	icon_opened = "largebinopen"
-	icon_closed = "largebin"
-*/
-
 /obj/structure/closet/crate/radiation
 	name = "radioactive gear crate"
 	desc = "A crate with a radiation sign on it."
@@ -335,6 +335,18 @@
 	icon_state = "closed_trashcart"
 	icon_opened = "open_trashcart"
 	icon_closed = "closed_trashcart"
+
+/obj/structure/closet/crate/foodcart
+	name = "food cart"
+	desc = "A heavy, metal foodcart with wheels."
+	icon_state = "foodcart2"
+	icon_opened = "foodcart2_open"
+	icon_closed = "foodcart2"
+
+/obj/structure/closet/crate/foodcart/alt
+	icon_state = "foodcart1"
+	icon_opened = "foodcart1_open"
+	icon_closed = "foodcart1"
 
 /obj/structure/closet/crate/weapon
 	name = "weapons crate"

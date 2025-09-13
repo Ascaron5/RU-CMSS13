@@ -2,7 +2,7 @@
 //******************************************Spec Kits****************************************************************/
 
 /obj/item/storage/box/spec
-	icon = 'icons/obj/items/storage.dmi'
+	icon = 'icons/obj/items/storage/kits.dmi'
 	icon_state = "kit_case"
 	var/kit_overlay = null
 	w_class = SIZE_HUGE
@@ -29,10 +29,8 @@
 /obj/item/storage/box/spec/demolitionist/fill_preset_inventory()
 	new /obj/item/clothing/suit/storage/marine/M3T(src)
 	new /obj/item/clothing/head/helmet/marine/M3T(src)
-	new /obj/item/clothing/head/helmet/marine/M3T(src)
 	new /obj/item/storage/backpack/marine/rocketpack(src)
-	new /obj/item/storage/backpack/marine/rocketpack(src)
-	new /obj/item/weapon/gun/launcher/rocket(src)
+	new /obj/item/weapon/gun/launcher/rocket/m5(src)
 	new /obj/item/ammo_magazine/rocket(src)
 	new /obj/item/ammo_magazine/rocket(src)
 	new /obj/item/ammo_magazine/rocket/ap(src)
@@ -45,6 +43,41 @@
 	new /obj/item/explosive/plastic(src)
 	new /obj/item/device/binoculars(src)
 
+	// loader
+	new /obj/item/storage/box/kit/loader(src)
+
+/obj/item/storage/box/kit/loader
+	name = "\improper Loader Kit"
+	desc = "A large kit containing all the supplies needed to turn a Private into the loading assistant for a Demolitions Specialist.\
+	\nA little infographic series shows how reloading should be done:\
+	\nStep One: Grab the Rocket\
+	\nStep Two: Position yourself behind the Specialist\
+	\nStep Three: Ensure the Specialist is wielding their Launcher\
+	\nStep Four: Load the Rocket into the Launcher\
+	\nStep Five: Stand clear of the back-blast"
+	pro_case_overlay = "loader"
+
+/obj/item/storage/box/kit/loader/fill_preset_inventory()
+	// wearables
+	new /obj/item/clothing/suit/storage/marine/M3T(src)
+	new /obj/item/clothing/head/helmet/marine/M3T(src)
+	new /obj/item/storage/backpack/marine/rocketpack(src)
+
+	// a little bit of extra ammo
+	new /obj/item/ammo_magazine/rocket(src)
+	new /obj/item/ammo_magazine/rocket/ap(src)
+	new /obj/item/ammo_magazine/rocket/wp(src)
+
+	// equipment
+	new /obj/item/weapon/gun/pistol/vp78(src)
+	new /obj/item/ammo_magazine/pistol/vp78(src)
+	new /obj/item/ammo_magazine/pistol/vp78(src)
+	new /obj/item/explosive/plastic(src)
+	new /obj/item/explosive/plastic(src)
+	new /obj/item/device/binoculars(src)
+
+	// skills
+	new /obj/item/pamphlet/skill/loader(src)
 
 /obj/item/storage/box/spec/sniper
 	name = "\improper Sniper equipment case"
@@ -77,9 +110,6 @@
 	new /obj/item/clothing/head/helmet/marine/ghillie(src)
 	new /obj/item/clothing/glasses/night/m42_night_goggles(src)
 	new /obj/item/weapon/gun/rifle/sniper/XM43E1(src)
-	new /obj/item/ammo_magazine/sniper/anti_materiel(src)
-	new /obj/item/ammo_magazine/sniper/anti_materiel(src)
-	new /obj/item/ammo_magazine/sniper/anti_materiel(src)
 	new /obj/item/ammo_magazine/sniper/anti_materiel(src)
 	new /obj/item/ammo_magazine/sniper/anti_materiel(src)
 	new /obj/item/storage/backpack/marine/smock(src)
@@ -121,7 +151,6 @@
 	else
 		new /obj/item/device/binoculars/range/designator/scout(src)
 
-
 /obj/item/storage/box/spec/pyro
 	name = "\improper Pyrotechnician equipment case"
 	desc = "A large case containing M240-T incinerator unit, M35 pyrotechnician armor and helmet, Broiler-T flexible refueling system and additional pieces of equipment.\nDrag this sprite onto yourself to open it up! NOTE: You cannot put items back inside this case."
@@ -131,7 +160,7 @@
 	new /obj/item/clothing/suit/storage/marine/M35(src)
 	new /obj/item/clothing/head/helmet/marine/pyro(src)
 	new /obj/item/storage/large_holster/fuelpack(src)
-	new /obj/item/weapon/gun/flamer/M240T(src)
+	new /obj/item/weapon/gun/flamer/m240/spec(src)
 	new /obj/item/ammo_magazine/flamer_tank/large(src)
 	new /obj/item/storage/pouch/flamertank(src)
 	new /obj/item/tool/extinguisher(src)
@@ -140,7 +169,6 @@
 	new /obj/item/ammo_magazine/pistol/vp78(src)
 	new /obj/item/ammo_magazine/pistol/vp78(src)
 	new /obj/item/device/binoculars(src)
-
 
 /obj/item/storage/box/spec/heavy_grenadier
 	name = "\improper Heavy Grenadier equipment case"
@@ -152,6 +180,30 @@
 	new /obj/item/storage/belt/grenade/large/full(src)
 	new /obj/item/storage/backpack/marine/grenadepack(src)
 	new /obj/item/storage/backpack/marine/grenadepack(src)
+	new /obj/item/clothing/gloves/marine/M3G(src)
+	new /obj/item/clothing/suit/storage/marine/M3G(src)
+	new /obj/item/clothing/head/helmet/marine/grenadier(src)
+	new /obj/item/weapon/gun/pistol/vp78(src)
+	new /obj/item/ammo_magazine/pistol/vp78(src)
+	new /obj/item/ammo_magazine/pistol/vp78(src)
+	new /obj/item/device/binoculars(src)
+
+/obj/item/storage/box/spec/sharp_operator
+	name = "\improper SHARP Operator equipment case"
+	desc = "A large case containing a P9 SHARP rifle, M3-G4 Grenadier armor and helmet, and various pieces of additional equipment.\nDrag this sprite onto yourself to open it up!"
+	kit_overlay = "grenadier"
+
+/obj/item/storage/box/spec/sharp_operator/fill_preset_inventory()
+	new /obj/item/weapon/gun/rifle/sharp(src)
+	new /obj/item/storage/belt/marine/sharp(src)
+	new /obj/item/ammo_magazine/rifle/sharp/explosive(src)
+	new /obj/item/ammo_magazine/rifle/sharp/explosive(src)
+	new /obj/item/ammo_magazine/rifle/sharp/explosive(src)
+	new /obj/item/ammo_magazine/rifle/sharp/explosive(src)
+	new /obj/item/ammo_magazine/rifle/sharp/flechette(src)
+	new /obj/item/ammo_magazine/rifle/sharp/flechette(src)
+	new /obj/item/ammo_magazine/rifle/sharp/incendiary(src)
+	new /obj/item/ammo_magazine/rifle/sharp/incendiary(src)
 	new /obj/item/clothing/gloves/marine/M3G(src)
 	new /obj/item/clothing/suit/storage/marine/M3G(src)
 	new /obj/item/clothing/head/helmet/marine/grenadier(src)
@@ -172,13 +224,38 @@
 	new /obj/item/clothing/head/helmet/marine/specialist(src)
 	new /obj/item/clothing/suit/storage/marine/specialist(src)
 
+/obj/item/storage/box/spec/mortar
+	name = "\improper Mortar Kit"
+	desc = "Contains the equipment needed for the mortar."
+	kit_overlay = "mortar"
+
+/obj/item/storage/box/spec/mortar/fill_preset_inventory()
+	new /obj/item/mortar_kit(src)
+	new /obj/item/pamphlet/skill/mortar_operator(src)
+	new /obj/item/pamphlet/skill/mortar_operator(src)
+	new /obj/item/storage/belt/gun/mortarbelt(src)
+	new /obj/item/storage/belt/gun/mortarbelt(src)
+	new /obj/item/storage/backpack/marine/mortarpack(src)
+	new /obj/item/mortar_shell/incendiary(src)
+	new /obj/item/mortar_shell/incendiary(src)
+	new /obj/item/mortar_shell/he(src)
+	new /obj/item/mortar_shell/he(src)
+	new /obj/item/mortar_shell/frag(src)
+	new /obj/item/mortar_shell/frag(src)
+	new /obj/item/mortar_shell/flare(src)
+	new /obj/item/mortar_shell/flare(src)
+	new /obj/item/tool/wrench(src)
+	new /obj/item/device/binoculars/range(src)
+	new /obj/item/device/binoculars/range/designator(src)
+
+
 //-----------------SPEC KIT BOX------------------
 //For events/WO, allows the user to choose a specalist kit out of available ones in spec_kit_boxes_left list in gloabl_lists.dm
 
 /obj/item/spec_kit
 	name = "specialist kit"
 	desc = "A paper box. Open it and get a specialist kit."
-	icon = 'icons/obj/items/storage.dmi'
+	icon = 'icons/obj/items/storage/kits.dmi'
 	icon_state = "spec_kit"
 	var/list/allowed_roles_list = list(JOB_SQUAD_SPECIALIST, JOB_WO_SQUAD_SPECIALIST, JOB_WO_CREWMAN)
 
@@ -274,7 +351,7 @@
 //******************************************PFC Kits****************************************************************/
 
 /obj/item/storage/box/kit
-	icon = 'icons/obj/items/storage.dmi'
+	icon = 'icons/obj/items/storage/kits.dmi'
 	icon_state = "pro_case_mini"//to-do redo these sprites, they're out of date by current standards
 	w_class = SIZE_HUGE
 	storage_slots = 12
@@ -288,14 +365,14 @@
 /obj/item/storage/box/kit/Initialize()
 	. = ..()
 	if(pro_case_overlay)
-		overlays += image('icons/obj/items/storage.dmi', "+[pro_case_overlay]")
+		overlays += image('icons/obj/items/storage/kits.dmi', "+[pro_case_overlay]")
 
 /obj/item/storage/box/kit/update_icon()
 	if(!length(contents))
 		qdel(src)
 /obj/item/storage/box/kit/mou53_sapper
 	name = "\improper M-OU53 Field Test Kit"
-	pro_case_overlay = "mou53"
+	pro_case_overlay = "dots"
 
 /obj/item/storage/box/kit/mou53_sapper/fill_preset_inventory()
 	new /obj/item/weapon/gun/shotgun/double/mou53(src)
@@ -323,7 +400,7 @@
 
 /obj/item/storage/box/kit/machinegunner
 	name = "\improper M2C Heavy Gunner Kit"
-	pro_case_overlay = "hmg"
+	pro_case_overlay = "dots"
 
 /obj/item/storage/box/kit/machinegunner/fill_preset_inventory()
 	new /obj/item/storage/box/m56d/m2c(src)
@@ -337,7 +414,7 @@
 /obj/item/storage/box/kit/defensegunner
 	name = "\improper M56D Defense Gunner Kit"
 	icon_state = "pro_case_large"
-	pro_case_overlay = "m56d"
+	pro_case_overlay = "dots"
 
 /obj/item/storage/box/kit/defensegunner/fill_preset_inventory()
 	new /obj/item/storage/box/m56d_hmg(src)
@@ -354,7 +431,7 @@
 
 /obj/item/storage/box/kit/mini_pyro/fill_preset_inventory()
 	new /obj/item/storage/backpack/marine/engineerpack/flamethrower/kit(src)
-	new /obj/item/weapon/gun/flamer/underextinguisher(src)
+	new /obj/item/weapon/gun/flamer/m240/underextinguisher(src)
 	new /obj/item/ammo_magazine/flamer_tank(src)
 	new /obj/item/ammo_magazine/flamer_tank(src)
 	new /obj/item/ammo_magazine/flamer_tank/gellied(src)
@@ -454,7 +531,7 @@
 
 /obj/item/storage/box/kit/mini_intel
 	name = "\improper Field Intelligence Support Kit"
-	pro_case_overlay = "intel"
+	pro_case_overlay = "jtac"
 
 /obj/item/storage/box/kit/mini_intel/fill_preset_inventory()
 	new /obj/item/stack/fulton(src)
@@ -465,7 +542,7 @@
 
 /obj/item/storage/box/kit/mini_grenadier
 	name = "\improper Frontline M40 Grenadier Kit"
-	pro_case_overlay = "grenadier"
+	pro_case_overlay = "engi"
 
 /obj/item/storage/box/kit/mini_grenadier/fill_preset_inventory()
 	new /obj/item/storage/belt/grenade/full(src)
@@ -502,11 +579,11 @@
 	new /obj/item/weapon/gun/pistol/mod88/flashlight(src)
 	new /obj/item/attachable/bayonet(src)
 	new /obj/item/tool/crowbar/red(src)
-	new /obj/item/reagent_container/food/snacks/packaged_meal(src, pick("boneless pork ribs", "grilled chicken", "pizza square", "spaghetti chunks", "chicken tender"))
+	new /obj/item/mre_food_packet/entree/uscm(src)
 
 /obj/item/storage/box/kit/exp_trooper
 	name = "\improper Experimental Trooper Kit"
-	pro_case_overlay = "smart"
+	pro_case_overlay = "crayon"
 
 /obj/item/storage/box/kit/exp_trooper/fill_preset_inventory()
 	new /obj/item/weapon/gun/pistol/smart(src)
@@ -521,7 +598,7 @@
 
 /obj/item/storage/box/kit/honorguard
 	name = "\improper Honor Guard Kit"
-	pro_case_overlay = "honor_guard"
+	pro_case_overlay = "shield"
 
 /obj/item/storage/box/kit/honorguard/fill_preset_inventory()
 	new /obj/item/device/radio/headset/almayer/marine/mp_honor(src)
@@ -545,6 +622,36 @@
 	new /obj/item/device/binoculars/range/designator/spotter(src)
 	new /obj/item/pamphlet/skill/spotter(src)
 
+/obj/item/storage/box/kit/k9_handler/mp
+	name = "\improper Police K9 handler Kit"
+	desc = "Contains the equipment needed for a Police K9 Handler to perform their duties."
+	pro_case_overlay = "k9_handler"
+
+/obj/item/storage/box/kit/k9_handler/mp/fill_preset_inventory()
+	new /obj/item/device/k9_scanner(src)
+	new /obj/item/storage/firstaid/synth(src)
+	new /obj/item/device/helmet_visor/welding_visor(src)
+	new /obj/item/device/binoculars(src)
+	new /obj/item/pamphlet/skill/k9_handler(src)
+	new /obj/item/storage/box/evidence(src)
+	new /obj/item/restraint/handcuffs(src)
+	new /obj/item/reagent_container/spray/pepper(src)
+	new /obj/item/device/defibrillator/synthetic/noskill(src) //unskilled defib in the event that the handler dies
+
+/obj/item/storage/box/kit/k9_handler/corpsman
+	name = "\improper Medical K9 handler Kit"
+	desc = "Contains the equipment needed for a Medical K9 Handler to perform their duties."
+	pro_case_overlay = "k9_handler"
+
+/obj/item/storage/box/kit/k9_handler/corpsman/fill_preset_inventory()
+	new /obj/item/device/k9_scanner(src)
+	new /obj/item/storage/firstaid/synth(src)
+	new /obj/item/device/helmet_visor/welding_visor(src)
+	new /obj/item/device/binoculars(src)
+	new /obj/item/pamphlet/skill/k9_handler(src)
+	new /obj/item/storage/pouch/autoinjector/full(src)
+	new /obj/item/device/defibrillator/synthetic/noskill(src)
+
 /obj/item/storage/box/kit/engineering_supply_kit
 	name = "\improper Engineering Supply Kit"
 
@@ -552,3 +659,16 @@
 	new /obj/item/storage/pouch/construction/low_grade_full(src)
 	new /obj/item/storage/pouch/electronics/full(src)
 	new /obj/item/clothing/glasses/welding(src)
+
+
+/obj/item/storage/box/kit/UPP_leader_AR
+	name = "\improper Type 71-F Rifle Kit"
+	pro_case_overlay = "pursuit"
+
+/obj/item/storage/box/kit/UPP_leader_AR/fill_preset_inventory()
+	new /obj/item/weapon/gun/rifle/type71/flamer(src)
+	new /obj/item/attachable/reflex(src)
+	new /obj/item/attachable/suppressor(src)
+	new /obj/item/attachable/extended_barrel(src)
+	new /obj/item/ammo_magazine/rifle/type71/ap(src)
+	new /obj/item/ammo_magazine/rifle/type71/ap(src)

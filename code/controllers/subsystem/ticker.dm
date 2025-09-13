@@ -53,11 +53,6 @@ SUBSYSTEM_DEF(ticker)
 	var/tutorial_disabled = FALSE
 
 /datum/controller/subsystem/ticker/Initialize(timeofday)
-//RUCM START
-	if(!SSmapping.configs)
-		SSmapping.HACK_LoadMapConfig()
-//RUCM END
-
 	load_mode()
 
 	var/all_music = CONFIG_GET(keyed_list/lobby_music)
@@ -148,10 +143,6 @@ SUBSYSTEM_DEF(ticker)
 	INVOKE_ASYNC(src, PROC_REF(setup_start))
 
 	REDIS_PUBLISH("byond.round", "type" = "round-start")
-
-	for(var/client/C in GLOB.admins)
-		remove_verb(C, GLOB.roundstart_mod_verbs)
-	GLOB.admin_verbs_minor_event -= GLOB.roundstart_mod_verbs
 
 	return TRUE
 
@@ -265,9 +256,6 @@ SUBSYSTEM_DEF(ticker)
 
 	CHECK_TICK
 
-	for(var/mob/new_player/np in GLOB.new_player_list)
-		INVOKE_ASYNC(np, TYPE_PROC_REF(/mob/new_player, new_player_panel_proc), TRUE)
-
 	setup_economy()
 
 	SSoldshuttle.shuttle_controller?.setup_shuttle_docks()
@@ -290,6 +278,7 @@ SUBSYSTEM_DEF(ticker)
 		to_chat_spaced(world, html = FONT_SIZE_BIG(SPAN_ROLE_BODY("<B>Welcome to [GLOB.round_statistics.round_name]</B>")))
 
 	GLOB.supply_controller.start_processing()
+	GLOB.supply_controller_upp.start_processing()
 
 	for(var/i in GLOB.closet_list) //Set up special equipment for lockers and vendors, depending on gamemode
 		var/obj/structure/closet/C = i
@@ -364,28 +353,13 @@ SUBSYSTEM_DEF(ticker)
 
 
 /datum/controller/subsystem/ticker/proc/load_mode()
-/*
 	var/mode = trim(file2text("data/mode.txt"))
 	if(mode)
 		GLOB.master_mode = SSmapping.configs[GROUND_MAP].force_mode ? SSmapping.configs[GROUND_MAP].force_mode : mode
 	else
 		GLOB.master_mode = "Extended"
 	log_game("Saved mode is '[GLOB.master_mode]'")
-*/
-//RUCM START
-	var/cfg_mode = trim(file2text("data/mode.txt"))
-	if(SSmapping?.configs?[GROUND_MAP].force_mode)
-		GLOB.master_mode = SSmapping.configs[GROUND_MAP].force_mode
-	else if(cfg_mode)
-		GLOB.master_mode = cfg_mode
-	else
-		GLOB.master_mode = "Extended"
 
-	mode = config.pick_mode(GLOB.master_mode)
-	mode.setup_round_stats()
-
-	log_game("Saved mode is '[GLOB.master_mode]'")
-//RUCM END
 
 /datum/controller/subsystem/ticker/proc/save_mode(the_mode)
 	fdel("data/mode.txt")
@@ -400,7 +374,7 @@ SUBSYSTEM_DEF(ticker)
 
 	if(graceful)
 		to_chat_forced(world, "<h3>[SPAN_BOLDNOTICE("Shutting down...")]</h3>")
-		world.Reboot(FALSE)
+		world.Reboot()
 		return
 
 	if(!delay)
@@ -423,7 +397,7 @@ SUBSYSTEM_DEF(ticker)
 	log_game("Rebooting World. [reason]")
 	to_chat_forced(world, "<h3>[SPAN_BOLDNOTICE("Rebooting...")]</h3>")
 
-	world.Reboot(TRUE)
+	world.Reboot()
 
 /datum/controller/subsystem/ticker/proc/create_characters()
 	if(!GLOB.RoleAuthority)
@@ -437,6 +411,9 @@ SUBSYSTEM_DEF(ticker)
 
 /datum/controller/subsystem/ticker/proc/spawn_and_equip_char(mob/new_player/player)
 	var/datum/job/J = GLOB.RoleAuthority.roles_for_mode[player.job]
+
+	player.client?.prefs.update_slot(J.title, 10 SECONDS)
+
 	if(J.job_options && player?.client?.prefs?.pref_special_job_options[J.title])
 		J.handle_job_options(player.client.prefs.pref_special_job_options[J.title])
 	if(J.handle_spawn_and_equip)
@@ -445,7 +422,8 @@ SUBSYSTEM_DEF(ticker)
 		var/mob/M = J.spawn_in_player(player)
 		if(istype(M))
 			J.equip_job(M)
-			EquipCustomItems(M)
+			if(player.ckey in GLOB.donator_items)
+				to_chat(player, SPAN_BOLDNOTICE("You have gear available in the personal gear vendor near Requisitions."))
 
 			if(M.client)
 				var/client/C = M.client
@@ -474,8 +452,10 @@ SUBSYSTEM_DEF(ticker)
 			if(player.job == JOB_CO)
 				captainless = FALSE
 			if(player.job)
-				GLOB.RoleAuthority.equip_role(player, GLOB.RoleAuthority.roles_by_name[player.job], late_join = FALSE)
-				EquipCustomItems(player)
+				INVOKE_ASYNC(GLOB.RoleAuthority, TYPE_PROC_REF(/datum/authority/branch/role, equip_role), player, GLOB.RoleAuthority.roles_by_name[player.job], FALSE)
+				if(player.ckey in GLOB.donator_items)
+					to_chat(player, SPAN_BOLDNOTICE("You have gear available in the personal gear vendor near Requisitions."))
+
 			if(player.client)
 				var/client/C = player.client
 				if(C.player_data && C.player_data.playtime_loaded && length(C.player_data.playtimes) == 0)

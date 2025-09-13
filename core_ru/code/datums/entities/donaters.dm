@@ -1,6 +1,13 @@
 GLOBAL_LIST_EMPTY(discord_ranks)
 GLOBAL_LIST_EMPTY_TYPED(donators_info, /datum/donator_info)
 
+GLOBAL_LIST_INIT_TYPED(all_gun_decorators, /datum/decorator/weapon_map_decorator, create_decorators())
+
+/proc/create_decorators()
+	. = list()
+	for(var/decorator_type in subtypesof(/datum/decorator/weapon_map_decorator))
+		. += new decorator_type
+
 /datum/entity/player
 	var/datum/donator_info/donator_info
 
@@ -125,6 +132,10 @@ BSQL_PROTECT_DATUM(/datum/entity/skin)
 		if(user.client.player_data.donator_info.skins["[item.type]"] && !user.client.player_data.donator_info.skins_used["[item.type]"])
 			handle_skinning(item, user)
 			return
+/* OOD, upstream messed around so need fix
+	if(handle_decorator_override(item, user))
+		return
+*/
 	. = ..()
 
 /proc/handle_skinning(obj/item, mob/user)
@@ -138,12 +149,20 @@ BSQL_PROTECT_DATUM(/datum/entity/skin)
 	if(!skin)
 		to_chat(user, SPAN_WARNING("Vending base skin."))
 		return
+
 	user.client.player_data.donator_info.skins_used["[item.type]"] = skin_selection
+	item.flags_atom |= ATOM_DECORATED
 	item.skin(skin)
+	return TRUE
 
 //COMPACT VERSION << ALL IN ONE >>
 /obj/proc/skin(S)
 	return
+
+/obj/CanProcCall(procname)
+	if(procname == "skin")
+		return FALSE
+	. = ..()
 
 //HELMET
 /obj/item/clothing/head/helmet/skin(skin)
@@ -154,12 +173,24 @@ BSQL_PROTECT_DATUM(/datum/entity/skin)
 		WEAR_HEAD = 'core_ru/icons/custom/items/clothing_on_mob.dmi'
 	)
 
+/obj/item/clothing/head/helmet/vv_edit_var(var_name, new_value)
+	var/static/list/banned_edits = list(NAMEOF_STATIC(src, icon_state), NAMEOF_STATIC(src, item_state))
+	if(var_name in banned_edits)
+		return FALSE
+	. = ..()
+
 //STORAGE
 /obj/item/clothing/suit/storage/marine/skin(skin)
 	icon = 'core_ru/icons/custom/items/clothings.dmi'
 	icon_state = "[icon_state]_[skin]"
 	item_state = "[item_state]_[skin]"
 	item_state_slots[WEAR_BODY] = icon_state
+
+/obj/item/clothing/suit/storage/marine/vv_edit_var(var_name, new_value)
+	var/static/list/banned_edits = list(NAMEOF_STATIC(src, icon_state), NAMEOF_STATIC(src, item_state))
+	if(var_name in banned_edits)
+		return FALSE
+	. = ..()
 
 //UNDER
 /obj/item/clothing/under/skin(skin)
@@ -173,6 +204,12 @@ BSQL_PROTECT_DATUM(/datum/entity/skin)
 
 	item_state_slots[WEAR_BODY] = worn_state
 	update_rollsuit_status()
+
+/obj/item/clothing/under/vv_edit_var(var_name, new_value)
+	var/static/list/banned_edits = list(NAMEOF_STATIC(src, icon_state))
+	if(var_name in banned_edits)
+		return FALSE
+	. = ..()
 
 //GUNS
 /obj/item/weapon/gun/skin(skin)

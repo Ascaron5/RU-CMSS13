@@ -10,6 +10,7 @@
 /mob/living/carbon/xenomorph/hivelord/langchat_height = 64
 /mob/living/carbon/xenomorph/defender/langchat_height = 48
 /mob/living/carbon/xenomorph/warrior/langchat_height = 48
+/mob/living/carbon/xenomorph/king/langchat_height = 64
 
 #define LANGCHAT_LONGEST_TEXT 64
 #define LANGCHAT_WIDTH 96
@@ -139,7 +140,7 @@
 
 	addtimer(CALLBACK(src, TYPE_PROC_REF(/atom, langchat_drop_image), language), timer, TIMER_UNIQUE|TIMER_OVERRIDE|TIMER_NO_HASH_WAIT)
 
-/atom/proc/langchat_long_speech(message, list/listeners, language)
+/atom/proc/langchat_long_speech(message, list/listeners, language, tts_heard_list)
 	langchat_drop_image()
 	langchat_make_image()
 
@@ -162,6 +163,9 @@
 	for(var/mob/M in langchat_listeners)
 		if(langchat_client_enabled(M) && !M.ear_deaf && M.say_understands(src, language))
 			M.client.images += langchat_image
+			//RUCM START
+			tts_heard_list[1] += M
+			//RUCM END
 
 	if(isturf(loc))
 		langchat_image.loc = src
@@ -170,7 +174,7 @@
 
 	animate(langchat_image, pixel_y = langchat_image.pixel_y + LANGCHAT_MESSAGE_POP_Y_SINK, alpha = LANGCHAT_MAX_ALPHA, time = LANGCHAT_MESSAGE_POP_TIME)
 	if(text_left)
-		addtimer(CALLBACK(src, TYPE_PROC_REF(/atom, langchat_long_speech), text_left, listeners, language), timer, TIMER_OVERRIDE|TIMER_UNIQUE|TIMER_NO_HASH_WAIT)
+		addtimer(CALLBACK(src, TYPE_PROC_REF(/atom, langchat_long_speech), text_left, listeners, language, tts_heard_list), timer, TIMER_OVERRIDE|TIMER_UNIQUE|TIMER_NO_HASH_WAIT)
 	else
 		addtimer(CALLBACK(src, TYPE_PROC_REF(/atom, langchat_drop_image), language), timer, TIMER_OVERRIDE|TIMER_UNIQUE|TIMER_NO_HASH_WAIT)
 

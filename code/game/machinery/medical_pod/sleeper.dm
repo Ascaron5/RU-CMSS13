@@ -381,11 +381,11 @@
 
 #ifdef OBJECTS_PROXY_SPEECH
 // Transfers speech to occupant
-/obj/structure/machinery/medical_pod/sleeper/hear_talk(mob/living/sourcemob, message, verb, language, italics)
+/obj/structure/machinery/medical_pod/sleeper/hear_talk(mob/living/sourcemob, message, verb, datum/language/language, italics, tts_heard_list)
 	if(!QDELETED(occupant) && istype(occupant) && occupant.stat != DEAD)
-		proxy_object_heard(src, sourcemob, occupant, message, verb, language, italics)
+		proxy_object_heard(src, sourcemob, occupant, message, verb, language, italics, tts_heard_list = tts_heard_list)
 	else
-		..(sourcemob, message, verb, language, italics)
+		..(sourcemob, message, verb, language, italics, tts_heard_list = tts_heard_list)
 #endif // ifdef OBJECTS_PROXY_SPEECH
 
 /obj/structure/machinery/medical_pod/sleeper/proc/inject_chemical(mob/living/user as mob, chemical, amount)
@@ -423,4 +423,12 @@
 		to_chat(user, SPAN_NOTICE(" There is no one inside!"))
 	return
 
+/obj/structure/machinery/sleep_console/yautja
+	icon = 'icons/obj/structures/machinery/yautja_machines.dmi'
 
+/obj/structure/machinery/medical_pod/sleeper/yautja
+	icon = 'icons/obj/structures/machinery/yautja_machines.dmi'
+	available_chemicals = list("thwei", "inaprovaline", "oxycodone", "anti_toxin", "dexalinp", "tricordrazine", "alkysine", "imidazoline")
+	emergency_chems = list("thwei", "inaprovaline", "oxycodone", "anti_toxin", "dexalinp", "tricordrazine", "bicaridine", "kelotane", "meralyne", "dermaline", "alkysine", "imidazoline")
+	reagent_removed_per_second = AMOUNT_PER_TIME(8, 1 SECONDS)
+	upgraded = TRUE

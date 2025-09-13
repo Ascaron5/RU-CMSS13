@@ -12,6 +12,7 @@
 	power_channel = POWER_CHANNEL_ENVIRON
 	unslashable = TRUE
 	unacidable = TRUE
+	explo_proof = TRUE
 	var/id = null
 	var/range = 10
 	var/normaldoorcontrol = CONTROL_POD_DOORS
@@ -53,7 +54,7 @@
 	return src.attack_hand(user)
 
 /obj/structure/machinery/door_control/ex_act(severity)
-	if(indestructible)
+	if(explo_proof)
 		return FALSE
 	..()
 
@@ -207,6 +208,9 @@
 		if(!(stat & NOPOWER))
 			icon_state = initial(icon_state) + "0"
 
+/obj/structure/machinery/door_control/yautja
+	icon = 'icons/obj/structures/machinery/yautja_machines.dmi'
+
 /obj/structure/machinery/door_control/brbutton
 	icon_state = "big_red_button_wallv"
 
@@ -241,27 +245,83 @@
 	req_access_txt = "200"
 // seperating quarter and office because we might want to allow more access to the office than quarter in the future.
 /obj/structure/machinery/door_control/cl/office
-/obj/structure/machinery/door_control/cl/office/door
+
+/obj/structure/machinery/door_control/cl/office/lobby_door
+	name = "Lobby Door Shutter"
+	id = "cl_lobby_door"
+
+/obj/structure/machinery/door_control/cl/office/office_door
 	name = "Office Door Shutter"
+	id = "cl_office_door_s"
+
+/obj/structure/machinery/door_control/cl/office/office_door_remote
+	name = "Office Door Control"
 	id = "cl_office_door"
-/obj/structure/machinery/door_control/cl/office/window
+	normaldoorcontrol = TRUE
+
+
+/obj/structure/machinery/door_control/cl/office/lobby_window
+	name = "Lobby Windows Shutters"
+	id = "cl_lobby_windows"
+
+/obj/structure/machinery/door_control/cl/office/office_window
 	name = "Office Windows Shutters"
 	id = "cl_office_windows"
+
 /obj/structure/machinery/door_control/cl/office/divider
 	name = "Room Divider"
 	id = "RoomDivider"
+
 //special button that unlock the cl lock on is evac pod door bypassing general lockdown.
 /obj/structure/machinery/door_control/cl/office/evac
 	name = "Evac Pod Door Control"
 	id = "cl_evac"
 	normaldoorcontrol = 1
+
 /obj/structure/machinery/door_control/cl/quarter
-/obj/structure/machinery/door_control/cl/quarter/officedoor
+
+/obj/structure/machinery/door_control/cl/quarter/office_door
 	name = "Quarter Door Shutter"
 	id = "cl_quarter_door"
+
 /obj/structure/machinery/door_control/cl/quarter/backdoor
 	name = "Maintenance Door Shutter"
 	id = "cl_quarter_maintenance"
+
 /obj/structure/machinery/door_control/cl/quarter/windows
 	name = "Quarter Windows Shutters"
 	id = "cl_quarter_windows"
+
+// Hybrisa lockdown announcements
+
+/obj/structure/machinery/door_control/colony_lockdown
+	var/used = FALSE
+	var/colony_lockdown_time = 25 MINUTES
+
+/obj/structure/machinery/door_control/colony_lockdown/use_button(mob/living/user,force)
+	if(world.time < SSticker.mode.round_time_lobby + colony_lockdown_time)
+		to_chat(user, SPAN_WARNING("The colony-wide lockdown cannot be lifted yet. Please wait another [floor((SSticker.mode.round_time_lobby + colony_lockdown_time-world.time)/600)] minutes before trying again."))
+		return
+	if(used)
+		to_chat(user, SPAN_WARNING("The colony-wide lockdown has already been lifted."))
+		return
+	. = ..()
+	marine_announcement("The colony-wide lockdown protocols have been lifted.")
+	used = TRUE
+
+// Research
+
+/obj/structure/machinery/door_control/research_lockdown
+	var/used = FALSE
+	var/colony_lockdown_time = 10 MINUTES
+
+/obj/structure/machinery/door_control/research_lockdown/use_button(mob/living/user,force)
+	if(world.time < SSticker.mode.round_time_lobby + colony_lockdown_time)
+		to_chat(user, SPAN_WARNING("The WY-Research-Facility lockdown cannot be lifted yet. Please wait another [floor((SSticker.mode.round_time_lobby + colony_lockdown_time-world.time)/600)] minutes before trying again."))
+		return
+	if(used)
+		to_chat(user, SPAN_WARNING("The WY-Research-Facility lockdown has already been lifted."))
+		return
+	. = ..()
+	marine_announcement("The WY-Research-Facility lockdown protocols have been lifted.")
+	used = TRUE

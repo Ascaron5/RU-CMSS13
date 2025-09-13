@@ -198,6 +198,9 @@ BSQL_PROTECT_DATUM(/datum/entity/player)
 		to_chat_forced(owning_client, SPAN_WARNING("This is a temporary ban, it will be removed in [duration] minutes."))
 		QDEL_NULL(owning_client)
 
+	//RUCM START
+	REDIS_PUBLISH("byond.admin", "type" = "admin", "state" = "add_time_ban", "ref_player_id" = id)
+	//RUCM END
 	return TRUE
 
 /datum/entity/player/proc/remove_timed_ban()
@@ -227,6 +230,9 @@ BSQL_PROTECT_DATUM(/datum/entity/player)
 	time_ban_admin = null
 	save()
 
+	//RUCM START
+	REDIS_PUBLISH("byond.admin", "type" = "admin", "state" = "remove_time_ban", "ref_player_id" = id)
+	//RUCM END
 	return TRUE
 
 /datum/entity/player/proc/add_job_ban(ban_text, list/ranks, duration = null)
@@ -288,6 +294,9 @@ BSQL_PROTECT_DATUM(/datum/entity/player)
 		PJB.save()
 		job_bans[safe_rank] = PJB
 
+	//RUCM START
+	REDIS_PUBLISH("byond.admin", "type" = "admin", "state" = "add_job_ban", "ref_player_id" = id)
+	//RUCM END
 	return TRUE
 
 // removing job bans is done one by one
@@ -316,6 +325,9 @@ BSQL_PROTECT_DATUM(/datum/entity/player)
 	ban_unban_log_save("[key_name(admin)] unjobbanned [ckey] from [safe_rank]")
 	log_admin("[key_name(admin)] unbanned [ckey] from [safe_rank]")
 
+	//RUCM START
+	REDIS_PUBLISH("byond.admin", "type" = "admin", "state" = "remove_job_ban", "ref_player_id" = id)
+	//RUCM END
 	return TRUE
 
 /// Permanently bans this user, with the provided reason. The banner ([/datum/entity/player]) argument is optional, as this can be done without admin intervention.
@@ -346,6 +358,9 @@ BSQL_PROTECT_DATUM(/datum/entity/player)
 
 	save()
 
+	//RUCM START
+	REDIS_PUBLISH("byond.admin", "type" = "admin", "state" = "add_perma_ban", "ref_player_id" = id)
+	//RUCM END
 	return TRUE
 
 /datum/entity/player/proc/auto_unban()
@@ -360,13 +375,28 @@ BSQL_PROTECT_DATUM(/datum/entity/player)
 		is_time_banned = FALSE
 		save()
 
+	//RUCM START
+	REDIS_PUBLISH("byond.admin", "type" = "admin", "state" = "auto_unban", "ref_player_id" = id)
+	//RUCM END
+
 /datum/entity/player/proc/auto_unjobban()
+	//RUCM START
+	var/any_jobbans_lifted = FALSE
+	//RUCM END
 	for(var/key in job_bans)
 		var/datum/entity/player_job_ban/value = job_bans[key]
 		var/time_left = value.expiration - MINUTES_STAMP
 		if(value.ban_time && time_left < 0)
 			value.delete()
 			job_bans -= value
+			//RUCM START
+			any_jobbans_lifted = TRUE
+			//RUCM END
+
+	//RUCM START
+	if(any_jobbans_lifted)
+		REDIS_PUBLISH("byond.admin", "type" = "admin", "state" = "auto_unjobban", "ref_player_id" = id)
+	//RUCM END
 
 /datum/entity_meta/player/on_read(datum/entity/player/player)
 	player.job_bans = list()
@@ -512,16 +542,12 @@ BSQL_PROTECT_DATUM(/datum/entity/player)
 	load_player_data_info(get_player_from_key(ckey))
 
 /client/proc/load_player_data_info(datum/entity/player/player)
+	set waitfor = FALSE
+
 	if(ckey != player.ckey)
 		error("ALARM: MISMATCH. Loaded player data for client [ckey], player data ckey is [player.ckey], id: [player.id]")
 	player_data = player
 	player_data.owning_client = src
-//RUCM EDIT STAR
-	if((ckey in GLOB.db_admin_datums) && !admin_holder)
-		if(!GLOB.admin_datums[ckey])
-			new /datum/admins(ckey)
-		GLOB.admin_datums[ckey].associate(src, GLOB.db_admin_datums[ckey])
-//RUCM EDIT END
 	if(!player_data.last_login)
 		player_data.first_join_date = "[time2text(world.realtime, "YYYY-MM-DD hh:mm:ss")]"
 	if(!player_data.first_join_date)
@@ -534,6 +560,25 @@ BSQL_PROTECT_DATUM(/datum/entity/player)
 	player_data.save()
 	record_login_triplet(player.ckey, address, computer_id)
 	player_data.sync()
+
+	if(isSenator(src))
+		add_verb(src, /client/proc/whitelist_panel)
+	if(isCouncil(src))
+		add_verb(src, /client/proc/other_records)
+	if(isYautjaCouncil(src))
+		add_verb(src, /client/proc/pred_council_message)
+
+	if(GLOB.RoleAuthority && check_whitelist_status(WHITELIST_PREDATOR))
+		clan_info = GET_CLAN_PLAYER(player.id)
+		clan_info.sync()
+
+		if(check_whitelist_status(WHITELIST_YAUTJA_LEADER))
+			clan_info.clan_rank = GLOB.clan_ranks_ordered[CLAN_RANK_ADMIN]
+			clan_info.permissions |= CLAN_PERMISSION_ALL
+		else
+			clan_info.permissions &= ~CLAN_PERMISSION_ADMIN_MANAGER // Only the leader can manage the ancients
+
+		clan_info.save()
 
 /datum/entity/player/proc/check_ban(computer_id, address, is_telemetry)
 	. = list()

@@ -21,8 +21,8 @@
 	. = ..()
 	flags_atom |= USES_HEARING
 
-/obj/item/implant/neurostim/hear_talk(mob/M as mob, msg)
-	hear(msg)
+/obj/item/implant/neurostim/hear_talk(mob/living/sourcemob, message, verb, datum/language/language, italics, tts_heard_list)
+	hear(message)
 	return
 
 /obj/item/implant/neurostim/hear(msg)
@@ -62,7 +62,7 @@
 
 		var/mob_pain_msg = "Excruciating pain shoots through [part ? "your [part.display_name]" : "you"]!"
 		M.visible_message(SPAN_DANGER("[M] convulses in pain!"), SPAN_DANGER(mob_pain_msg))
-		M.flash_eyes(1, TRUE)
+		M.flash_eyes(EYE_PROTECTION_FLAVOR, TRUE)
 		M.apply_effect(10, STUN)
 		M.apply_effect(10, WEAKEN)
 		M.apply_damage(100, HALLOSS, part)

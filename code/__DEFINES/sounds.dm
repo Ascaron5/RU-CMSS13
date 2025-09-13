@@ -9,7 +9,7 @@
 #define VOLUME_AMB 2
 #define VOLUME_ADM 3
 #define VOLUME_LOBBY 4
-#define VOLUME_ANNOUNCEMENT 5
+#define VOLUME_TTS  5
 
 #define MUFFLE_LOW -500
 #define MUFFLE_MEDIUM -2000
@@ -86,7 +86,10 @@
 #define SOUND_ECHO_REVERB_OFF list(0, 0, -10000, -10000, 0, 0.0, 0, 0.25, 1.5, 1.0, 0, 1.0, 0, 0.0, 0.0, 0.0, 1.0, 0) //-10000 to Room & RoomHF makes enviromental reverb effectively inaudible
 
 #define AMBIENCE_SHIP 'sound/ambience/shipambience.ogg'
+#define AMBIENCE_SHIP_ALT 'sound/ambience/shipambience1.ogg'
 #define AMBIENCE_JUNGLE 'sound/ambience/ambienceLV624.ogg'
+#define AMBIENCE_JUNGLEMOON 'sound/ambience/junglemoon.ogg'
+#define AMBIENCE_JUNGLE_ALT 'sound/ambience/ambience_strata.ogg'
 #define AMBIENCE_RIVER  'sound/ambience/ambienceriver.ogg'
 #define AMBIENCE_MALL 'sound/ambience/medbay1.ogg'
 #define AMBIENCE_CAVE 'sound/ambience/desert.ogg'
@@ -112,3 +115,38 @@
 #define SCAPE_PL_ENG list('sound/soundscape/engamb1.ogg', 'sound/soundscape/engamb2.ogg', 'sound/soundscape/engamb3.ogg', 'sound/soundscape/engamb4.ogg', 'sound/soundscape/engamb5.ogg', 'sound/soundscape/engamb6.ogg', 'sound/soundscape/engamb7.ogg', )
 #define SCAPE_PL_HANGAR list('sound/soundscape/hangaramb1.ogg', 'sound/soundscape/hangaramb2.ogg', 'sound/soundscape/hangaramb3.ogg', 'sound/soundscape/hangaramb4.ogg', 'sound/soundscape/hangaramb5.ogg', 'sound/soundscape/hangaramb6.ogg', 'sound/soundscape/hangaramb7.ogg', 'sound/soundscape/hangaramb8.ogg', 'sound/soundscape/hangaramb9.ogg', 'sound/soundscape/hangaramb10.ogg', )
 #define SCAPE_PL_ARES list('sound/soundscape/mother.ogg')
+#define SCAPE_PL_JUNGLE_MOON list('sound/soundscape/alien_creature1.ogg', 'sound/soundscape/alien_creature2.ogg', 'sound/soundscape/alien_creature3.ogg')
+
+// RU-CM CODE START
+//Prison Station RU Sounds
+#define AMBIENCE_PRISON_ALARM 'sound/ambience/prisonfopru/prisonalarm.ogg'
+#define AMBIENCE_PRISON_LZDISPATCH 'sound/ambience/prisonfopru/prisonbridgeambience.ogg'
+#define AMBIENCE_PRISON_CONTROLROOM 'sound/ambience/prisonfopru/controlroomambience.ogg'
+#define AMBIENCE_PRISON_MAINTENANCE 'sound/ambience/prisonfopru/prisonmaintenancehalls4.ogg'
+
+#define SCAPE_PL_FIORINA_MAINTENANCE list('sound/ambience/prisonfopru/prisonmaintenancehalls.ogg','sound/ambience/prisonfopru/prisonmaintenancehalls2.ogg','sound/ambience/prisonfopru/prisonmaintenancehalls3.ogg',)
+#define SCAPE_PL_FIORINA_COMMON list('sound/ambience/prisonfopru/prisonstationwaterdrop.ogg','sound/ambience/prisonfopru/prisoncommon1.ogg','sound/ambience/prisonfopru/prisoncommon2.ogg','sound/ambience/prisonfopru/prisoncommon3.ogg','sound/ambience/prisonfopru/prisoncommon4.ogg','sound/ambience/prisonfopru/prisoncommon5.ogg',)
+#define SCAPE_PL_FIORINA_NEAR_SCI list('sound/ambience/prisonfopru/prisonalarm2.ogg','sound/ambience/prisonfopru/prisonalarm1.ogg','sound/ambience/prisonfopru/prisonalarm3.ogg',)
+#define SCAPE_PL_FIORINA_MACHINES_ROOM list('sound/ambience/prisonfopru/prisonstationmachines1.ogg','sound/ambience/prisonfopru/prisonstationmachines2.ogg','sound/ambience/prisonfopru/prisonstationmachines3.ogg','sound/ambience/prisonfopru/prisonstationmachines4.ogg','sound/ambience/prisonfopru/prisonstationmachines5.ogg')
+#define SCAPE_PL_FIORINA_COMPUTERS_ROOM list('sound/ambience/prisonfopru/prisoncomputer1.ogg','sound/ambience/prisonfopru/prisoncomputer2.ogg','sound/ambience/prisonfopru/prisoncomputer3.ogg','sound/ambience/prisonfopru/prisonstationmachines5.ogg','sound/ambience/prisonfopru/prisonstationservers1.ogg')
+#define SCAPE_PL_FIORINA_CIVILIAN_AD list('sound/ambience/prisonfopru/prisonintercomseegson.ogg',)
+// RU-CM CODE END
+
+// Hybrisa Soundscapes
+
+#define AMBIENCE_CITY 'sound/ambience/city_on_fire.ogg'
+#define AMBIENCE_DERELICT 'sound/ambience/derelict_ambience.ogg'
+#define AMBIENCE_LAB 'sound/ambience/lab_ambience.ogg'
+#define AMBIENCE_LAB_2 'sound/ambience/lab_ambience_2.ogg'
+#define AMBIENCE_LAB_HALLWAY 'sound/ambience/lab_ambience_hallway.ogg'
+#define AMBIENCE_WEYMART 'sound/ambience/weymart.ogg'
+#define AMBIENCE_HYBRISA_INTERIOR 'sound/ambience/hybrisa_interior.ogg'
+#define AMBIENCE_HYBRISA_CAVES 'sound/ambience/caves_ambience.ogg'
+#define AMBIENCE_HYBRISA_CAVES_ALARM 'sound/ambience/caves_ambience_alarm.ogg'
+
+#define SCAPE_PL_LV759_OUTDOORS list('sound/soundscape/lv759/outdoors/wind4.ogg','sound/soundscape/lv759/outdoors/wind5.ogg','sound/soundscape/lv759/outdoors/wind6.ogg','sound/soundscape/lv759/outdoors/wind7.ogg','sound/soundscape/lv759/outdoors/wind8.ogg','sound/soundscape/lv759/outdoors/wind9.ogg','sound/soundscape/lv759/outdoors/wind10.ogg','sound/soundscape/lv759/outdoors/wind11.ogg','sound/soundscape/lv759/outdoors/wind12.ogg','sound/soundscape/lv759/outdoors/wind13.ogg','sound/soundscape/lv759/outdoors/wind14.ogg','sound/soundscape/lv759/outdoors/wind15.ogg','sound/soundscape/lv759/outdoors/wind16.ogg','sound/soundscape/lv759/outdoors/wind17.ogg','sound/soundscape/lv759/outdoors/wind18.ogg','sound/soundscape/lv759/outdoors/wind19.ogg','sound/soundscape/lv759/outdoors/wind20.ogg','sound/soundscape/lv759/outdoors/wind21.ogg','sound/soundscape/lv759/outdoors/wind22.ogg','sound/soundscape/lv759/outdoors/wind23.ogg','sound/soundscape/lv759/outdoors/wind24.ogg','sound/soundscape/lv759/outdoors/wind25.ogg','sound/soundscape/lv759/outdoors/wind26.ogg','sound/soundscape/lv759/outdoors/wind27.ogg','sound/soundscape/lv759/outdoors/wind28.ogg',)
+#define SCAPE_PL_LV759_INDOORS list('sound/soundscape/lv522/indoors/indoor_wind.ogg','sound/soundscape/lv522/indoors/indoor_wind2.ogg','sound/soundscape/lv759/indoors/vent_1.ogg','sound/soundscape/lv759/indoors/vent_2.ogg','sound/soundscape/lv759/indoors/vent_3.ogg','sound/soundscape/lv759/indoors/vent_4.ogg','sound/soundscape/lv759/indoors/vent_5.ogg','sound/soundscape/lv759/indoors/vent_6.ogg','sound/soundscape/lv759/indoors/vent_7.ogg','sound/soundscape/lv759/indoors/vent_6.ogg','sound/soundscape/lv759/indoors/distant_sounds_1.ogg','sound/soundscape/lv759/indoors/distant_sounds_2.ogg','sound/soundscape/lv759/indoors/distant_sounds_3.ogg','sound/soundscape/lv759/indoors/distant_sounds_4.ogg','sound/soundscape/lv759/indoors/distant_sounds_5.ogg','sound/soundscape/lv759/indoors/distant_sounds_6.ogg','sound/soundscape/lv759/indoors/distant_sounds_7.ogg','sound/soundscape/lv759/indoors/distant_sounds_8.ogg','sound/soundscape/lv759/indoors/distant_sounds_9.ogg','sound/soundscape/lv759/indoors/distant_sounds_10.ogg','sound/soundscape/engamb1.ogg','sound/soundscape/engamb2.ogg','sound/soundscape/engamb3.ogg','sound/soundscape/engamb4.ogg','sound/soundscape/engamb5.ogg','sound/soundscape/engamb6.ogg','sound/soundscape/engamb7.ogg',)
+#define SCAPE_PL_LV759_DERELICTSHIP list('sound/soundscape/lv759/indoors/derelict1.ogg','sound/soundscape/lv759/indoors/derelict2.ogg','sound/soundscape/lv759/indoors/derelict3.ogg','sound/soundscape/lv759/indoors/derelict4.ogg','sound/soundscape/lv759/indoors/derelict5.ogg','sound/soundscape/lv759/indoors/derelict6.ogg','sound/soundscape/lv759/indoors/derelict7.ogg','sound/soundscape/lv759/indoors/derelict8.ogg')
+#define SCAPE_PL_LV759_DEEPCAVES list('sound/soundscape/lv759/outdoors/deepcave1.ogg','sound/soundscape/lv759/outdoors/deepcave2.ogg')
+#define SCAPE_PL_LV759_CAVES list('sound/soundscape/lv759/outdoors/windy_caverns_1.ogg','sound/soundscape/lv759/outdoors/windy_caverns_2.ogg','sound/soundscape/lv759/outdoors/windy_caverns_3.ogg',)
+#define SCAPE_PL_LV759_PLATEAU_OUTDOORS list('sound/soundscape/lv759/outdoors/derelict_plateau_1.ogg','sound/soundscape/lv759/outdoors/derelict_plateau_2.ogg',)
